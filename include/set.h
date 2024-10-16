@@ -33,8 +33,7 @@ template <typename T, T minEL, T maxEL>
 class Set {
  public:
   Set() = default;
-  Set(const Set &set) = default;
-  Set(Set &&set) = default;
+  Set(const Set &set) { this->data_ = set.data_; }
 
   /**
    * @brief Adds another Set object to this one.
