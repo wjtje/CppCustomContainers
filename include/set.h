@@ -18,7 +18,7 @@
  * of elements in the set.
  *
  * The set is represented as a single integer where each bit corresponds to an
- * element in the range [minEL, maxEL). Bit positions are calculated using the
+ * element in the range [minEL, maxEL]. Bit positions are calculated using the
  * formula U(value) - U(minEL).
  *
  * The maximum difference between minEL and maxEL depends on the size of
@@ -26,8 +26,8 @@
  *
  * @tparam T Type of elements in the set (must be comparable with minEL and
  * maxEL)
- * @tparam minEL Minimum element value in the range [minEL, maxEL) (inclusive)
- * @tparam maxEL Maximum element value in the range [minEL, maxEL) (exclusive)
+ * @tparam minEL Minimum element value in the range [minEL, maxEL] (inclusive)
+ * @tparam maxEL Maximum element value in the range [minEL, maxEL] (inclusive)
  */
 template <typename T, T minEL, T maxEL>
 class Set {
@@ -71,14 +71,14 @@ class Set {
   /**
    * @brief Inserts an element into the set.
    *
-   * If the element is within the valid range [minEL, maxEL), it is added to
+   * If the element is within the valid range [minEL, maxEL], it is added to
    * the set by setting the corresponding bit in the integer representation.
    *
    * @param value The element to add.
    * @return A reference to this Set instance.
    */
   Set &operator<<(T value) {
-    if (value < minEL || maxEL <= value) return *this;
+    if (value < minEL || maxEL < value) return *this;
     data_ |= (1 << (uint8_t(value) - uint8_t(minEL)));
     return *this;
   }
@@ -87,7 +87,7 @@ class Set {
   /**
    * @brief Removes an element from the set.
    *
-   * If the element is within the valid range [minEL, maxEL), it is removed
+   * If the element is within the valid range [minEL, maxEL], it is removed
    * from the set by clearing the corresponding bit in the integer
    * representation.
    *
@@ -99,7 +99,7 @@ class Set {
    * @return A reference to this Set instance.
    */
   Set &operator>>(T value) {
-    if (value < minEL || maxEL <= value) return *this;
+    if (value < minEL || maxEL < value) return *this;
     data_ &= ~(1 << (uint8_t(value) - uint8_t(minEL)));
     return *this;
   }
@@ -109,14 +109,14 @@ class Set {
    * @brief Checks if an element is present in the set.
    *
    * This method returns true if the element is within the valid range
-   * [minEL, maxEL) and its corresponding bit in the integer representation
+   * [minEL, maxEL] and its corresponding bit in the integer representation
    * is set. Otherwise, it returns false.
    *
    * @param value The element to check for presence.
    * @return True if the element is present in the set, false otherwise.
    */
   bool operator[](T value) const {
-    if (value < minEL || maxEL <= value) return false;
+    if (value < minEL || maxEL < value) return false;
     return (data_ & (1 << (uint8_t(value) - uint8_t(minEL)))) != 0;
   }
 
