@@ -36,6 +36,18 @@ class Set {
   Set(const Set &set) { this->data_ = set.data_; }
 
   /**
+   * @brief Assignment operator for copying the contents of another Set object.
+   *
+   * @param rhs The Set object to be copied from.
+   */
+  Set &operator=(const Set &rhs) {
+    if (this != &rhs) {
+      data_ = rhs.data_;
+    }
+    return *this;
+  }
+
+  /**
    * @brief Adds another Set object to this one.
    *
    * This operator adds another Set object to the current set by setting each
@@ -130,6 +142,29 @@ class Set {
    * @return True if the element is present in the set, false otherwise.
    */
   bool Contains(T value) const { return (*this)[value]; }
+
+  /**
+   * @brief Returns the capacity of the set, which is the number of elements
+   * that can be stored in it. This is calculated as maxEL - minEL + 1.
+   *
+   * @return The capacity of the set.
+   */
+  constexpr uint8_t Capacity() const { return maxEL - minEL + 1; }
+
+  /**
+   * @brief Returns the number of elements in the set.
+   *
+   * This method iterates over each element in the range [minEL, maxEL] and
+   * returns the count of elements that are present in the set.
+   *
+   * @return The number of elements in the set.
+   */
+  uint8_t Size() const {
+    uint8_t size = 0;
+    for (uint8_t i = 0; i < Capacity(); ++i)
+      if ((*this)[minEL + i]) ++size;
+    return size;
+  }
 
   /**
    * @brief Equality comparison between two Set instances.
