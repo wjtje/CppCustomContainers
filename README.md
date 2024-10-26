@@ -30,6 +30,10 @@ if (set.Contains(Options::kOptions1)) {
 }
 ```
 
+## Color (ColorRgb, ColorHsv, ColorTemp)
+
+Classes to store, manipulate and convert between RGB color values (0-255), HSV color values (0 - 360, 0 - 100, 0 - 100), and color temperature values in Kelvin.
+
 ## License
 
 MIT - see LICENSE file for details.
