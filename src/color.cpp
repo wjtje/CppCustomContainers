@@ -136,19 +136,22 @@ ColorHsv::ColorHsv(uint16_t hue, uint8_t saturation, uint8_t value) {
 ColorHsv::ColorHsv(const ColorRgb& rgb) { *this = rgb.ToHsv(); }
 
 ColorRgb ColorHsv::ToRgb() const {
-  const uint16_t chroma = (value_ * saturation_) * 255 / 10000;  // [0, 255]
-  const uint16_t m = (value_ * 255 / 100) - chroma;              // [0, 255]
+  // Adapted from: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
+  const uint32_t chroma =
+      uint32_t(value_ * saturation_) * 255 / 10000;  // [0, 255]
+  const uint16_t m = (value_ * 255 / 100) - chroma;  // [0, 255]
 
-  uint32_t tmp = hue_ << 16;
+  int32_t tmp = hue_ << 16;
   tmp /= 60;
   tmp %= 2 << 16;
   tmp -= 0xFFFF;
-  tmp &= 0xFFFF;
+  tmp = abs(tmp);
+  tmp = 0xFFFF - tmp;
   tmp *= chroma;
   const uint8_t x = uint8_t(tmp >> 16);  //[0, 255]
 
   const uint8_t h = uint8_t(hue_ / 60);  // [0, 5]
-  if (h == 0 || h >= 5) {
+  if (h == 0 || h >= 6) {
     return ColorRgb(chroma + m, x + m, m);
   } else if (h == 1) {
     return ColorRgb(x + m, chroma + m, m);
