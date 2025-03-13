@@ -32,6 +32,38 @@
 template <typename T, T minEL, T maxEL>
 class Set {
  public:
+  class Iterator {
+   public:
+    const T &operator*() const { return position_; }
+
+    Iterator &operator++() {
+      position_ = set_.GetNext_(position_);
+      return *this;
+    }
+    Iterator operator++(int) {
+      Iterator tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+
+    friend bool operator==(const Iterator &a, const Iterator &b) {
+      return a.position_ == b.position_;
+    }
+    friend bool operator!=(const Iterator &a, const Iterator &b) {
+      return a.position_ != b.position_;
+    }
+
+   protected:
+    friend class Set;
+
+    Iterator(T position, const Set<T, minEL, maxEL> &set)
+        : position_(position), set_(set) {}
+
+   private:
+    T position_;
+    const Set<T, minEL, maxEL> set_;
+  };
+
   Set() = default;
   Set(const Set &set) { this->data_ = set.data_; }
 
@@ -149,7 +181,9 @@ class Set {
    *
    * @return The capacity of the set.
    */
-  constexpr uint8_t Capacity() const { return maxEL - minEL + 1; }
+  constexpr uint8_t Capacity() const {
+    return uint8_t(maxEL) - uint8_t(minEL) + 1;
+  }
 
   /**
    * @brief Returns the number of elements in the set.
@@ -162,7 +196,7 @@ class Set {
   uint8_t Size() const {
     uint8_t size = 0;
     for (uint8_t i = 0; i < Capacity(); ++i)
-      if ((*this)[minEL + i]) ++size;
+      if ((*this)[T(uint8_t(minEL) + i)]) ++size;
     return size;
   }
 
@@ -179,7 +213,31 @@ class Set {
    */
   bool operator==(const Set &other) const { return data_ == other.data_; }
 
+  Iterator begin() const {
+    return Contains(minEL) ? Iterator(minEL, *this)
+                           : Iterator(GetNext_(minEL), *this);
+  }
+  Iterator end() const { return Iterator(T(uint8_t(maxEL) + 1), *this); }
+
  private:
+  /**
+   * @brief Returns the next element in the list that data contains.
+   * this returns maxEL + 1 if this is the end
+   *
+   * @param [in] element
+   * @return T
+   */
+  T GetNext_(const T &element) const {
+    for (uint8_t i = uint8_t(element) - uint8_t(minEL) + 1; i < Capacity();
+         ++i) {
+      if (Contains(T(uint8_t(minEL) + i))) {
+        return T(uint8_t(minEL) + i);
+      }
+    }
+
+    return T(uint8_t(maxEL) + 1);
+  }
+
   /**
    * @brief This integer represents the set's data, with each bit corresponding
    * to an element in the range [minEL, maxEL). The variable is initialized to
