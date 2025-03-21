@@ -203,15 +203,22 @@ class Set {
   /**
    * @brief Equality comparison between two Set instances.
    *
-   * This method checks whether both sets contain exactly the same elements,
-   * without regard to their order or multiplicity. Two sets are considered
-   * equal if they have the same size and all corresponding bit positions in
-   * their integer representations are set to the same value (0 or 1).
+   * This method checks whether both sets contain exactly the same elements.
    *
    * @param other The Set instance to compare with.
    * @return True if both sets are equal, false otherwise.
    */
   bool operator==(const Set &other) const { return data_ == other.data_; }
+
+  /**
+   * @brief Internal state of the object
+   *
+   * This can be used for debug purposes, this function is not stable in the
+   * sense that it can return something else in the feature.
+   *
+   * @return uintptr_t
+   */
+  uintptr_t Raw() const { return this->data_; }
 
   Iterator begin() const {
     return Contains(minEL) ? Iterator(minEL, *this)
