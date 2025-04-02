@@ -220,6 +220,11 @@ class Set {
    */
   uintptr_t Raw() const { return this->data_; }
 
+  /**
+   * @brief Empty the set, e.g. remove all values
+   */
+  void Clear() { this->data_ = 0; }
+
   Iterator begin() const {
     return Contains(minEL) ? Iterator(minEL, *this)
                            : Iterator(GetNext_(minEL), *this);
