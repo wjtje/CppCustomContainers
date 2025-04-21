@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2024 wjtje. MIT License
  */
 #pragma once
+#include <array>
 #include <cstddef>
 
 /**
@@ -19,6 +20,8 @@
 template <typename T, size_t SIZE>
 class CircularBuffer {
  public:
+  using Buffer = std::array<T, SIZE>;
+
   /**
    * @brief Return true when the buffer is full.
    *
@@ -132,7 +135,7 @@ class CircularBuffer {
   T& Front() { return this->buffer_[this->head_]; }
 
   struct Iterator {
-    Iterator(size_t position, T* buffer, bool is_tail)
+    Iterator(size_t position, Buffer& buffer, bool is_tail)
         : position_(position), buffer_(buffer), is_head_(is_tail) {}
 
     T& operator*() const { return buffer_[position_]; }
@@ -166,15 +169,20 @@ class CircularBuffer {
     }
 
     size_t position_;
-    T* buffer_;
+    Buffer& buffer_;
     bool is_head_;  // Indicated the tail (begin) of the iterator
   };
 
   Iterator begin() { return Iterator(this->head_, this->buffer_, true); }
   Iterator end() { return Iterator(this->tail_, this->buffer_, this->Empty()); }
 
+  Iterator begin() const { return Iterator(this->head_, this->buffer_, true); }
+  Iterator end() const {
+    return Iterator(this->tail_, this->buffer_, this->Empty());
+  }
+
  protected:
-  T buffer_[SIZE];
+  Buffer buffer_;
   size_t tail_{0}, head_{0};
   bool full_{false};
 
