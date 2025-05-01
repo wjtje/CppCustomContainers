@@ -112,6 +112,20 @@ class Set {
   void operator*=(const Set &value) { data_ &= value.data_; }
 
   /**
+   * @brief Inserts or removes an element from the set.
+   *
+   * @param value The element to add or remove
+   * @param state Weather or not the elemnt needs to be added or removed
+   * @return A reference to this Set instance.
+   */
+  Set &set(T value, bool state) {
+    if (value < minEL || maxEL < value) return *this;
+    const uintptr_t bit = (1 << (uint8_t(value) - uint8_t(minEL)));
+    data_ = state ? data_ | bit : data_ & ~bit;
+    return *this;
+  }
+
+  /**
    * @brief Inserts an element into the set.
    *
    * If the element is within the valid range [minEL, maxEL], it is added to
