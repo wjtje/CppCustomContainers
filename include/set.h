@@ -9,7 +9,8 @@
  * @copyright Copyright (c) 2024 wjtje. MIT License
  */
 #pragma once
-#include <stdint.h>
+#include <bitset>
+#include <utility>
 
 /**
  * @brief A Set class template representing a set of elements.
@@ -21,15 +22,13 @@
  * element in the range [minEL, maxEL]. Bit positions are calculated using the
  * formula U(value) - U(minEL).
  *
- * The maximum difference between minEL and maxEL depends on the size of
- * uintptr_t. This is 64 on 64 bit systems, and 32 on 32 bit systems.
  *
  * @tparam T Type of elements in the set (must be comparable with minEL and
  * maxEL)
  * @tparam minEL Minimum element value in the range [minEL, maxEL] (inclusive)
  * @tparam maxEL Maximum element value in the range [minEL, maxEL] (inclusive)
  */
-template <typename T, T minEL, T maxEL>
+template <typename T, T minEL, T maxEL, typename UT = std::underlying_type_t<T>>
 class Set {
  public:
   class Iterator {
@@ -120,8 +119,12 @@ class Set {
    */
   Set &set(T value, bool state) {
     if (value < minEL || maxEL < value) return *this;
-    const uintptr_t bit = (1 << (uint8_t(value) - uint8_t(minEL)));
-    data_ = state ? data_ | bit : data_ & ~bit;
+    data_.set(
+        static_cast<std::size_t>(
+            static_cast<UT>(value) - static_cast<UT>(minEL)
+        ),
+        state
+    );
     return *this;
   }
 
@@ -136,7 +139,11 @@ class Set {
    */
   Set &operator<<(T value) {
     if (value < minEL || maxEL < value) return *this;
-    data_ |= (1 << (uint8_t(value) - uint8_t(minEL)));
+    data_.set(
+        static_cast<std::size_t>(
+            static_cast<UT>(value) - static_cast<UT>(minEL)
+        )
+    );
     return *this;
   }
   Set &Insert(T value) { return operator<<(value); }
@@ -157,7 +164,11 @@ class Set {
    */
   Set &operator>>(T value) {
     if (value < minEL || maxEL < value) return *this;
-    data_ &= ~(1 << (uint8_t(value) - uint8_t(minEL)));
+    data_.reset(
+        static_cast<std::size_t>(
+            static_cast<UT>(value) - static_cast<UT>(minEL)
+        )
+    );
     return *this;
   }
   Set &Erase(T value) { return operator>>(value); }
@@ -174,7 +185,11 @@ class Set {
    */
   bool operator[](T value) const {
     if (value < minEL || maxEL < value) return false;
-    return (data_ & (1 << (uint8_t(value) - uint8_t(minEL)))) != 0;
+    return data_.test(
+        static_cast<std::size_t>(
+            static_cast<UT>(value) - static_cast<UT>(minEL)
+        )
+    );
   }
 
   /**
@@ -195,8 +210,10 @@ class Set {
    *
    * @return The capacity of the set.
    */
-  constexpr uint8_t Capacity() const {
-    return uint8_t(maxEL) - uint8_t(minEL) + 1;
+  constexpr std::size_t Capacity() const {
+    return static_cast<std::size_t>(
+        static_cast<UT>(maxEL) - static_cast<UT>(minEL) + 1
+    );
   }
 
   /**
@@ -207,10 +224,10 @@ class Set {
    *
    * @return The number of elements in the set.
    */
-  uint8_t Size() const {
-    uint8_t size = 0;
-    for (uint8_t i = 0; i < Capacity(); ++i)
-      if ((*this)[T(uint8_t(minEL) + i)]) ++size;
+  std::size_t Size() const {
+    std::size_t size = 0;
+    for (std::size_t i = 0; i < Capacity(); ++i)
+      if ((*this)[static_cast<T>(static_cast<UT>(minEL) + i)]) ++size;
     return size;
   }
 
@@ -230,9 +247,9 @@ class Set {
    * This can be used for debug purposes, this function is not stable in the
    * sense that it can return something else in the feature.
    *
-   * @return uintptr_t
+   * @return unsigned long
    */
-  uintptr_t Raw() const { return this->data_; }
+  unsigned long Raw() const { return this->data_.to_ulong(); }
 
   /**
    * @brief Empty the set, e.g. remove all values
@@ -243,7 +260,9 @@ class Set {
     return Contains(minEL) ? Iterator(minEL, *this)
                            : Iterator(GetNext_(minEL), *this);
   }
-  Iterator end() const { return Iterator(T(uint8_t(maxEL) + 1), *this); }
+  Iterator end() const {
+    return Iterator(static_cast<T>(static_cast<UT>(maxEL) + 1), *this);
+  }
 
  private:
   /**
@@ -254,20 +273,20 @@ class Set {
    * @return T
    */
   T GetNext_(const T &element) const {
-    for (uint8_t i = uint8_t(element) - uint8_t(minEL) + 1; i < Capacity();
-         ++i) {
-      if (Contains(T(uint8_t(minEL) + i))) {
-        return T(uint8_t(minEL) + i);
+    for (UT i = static_cast<UT>(element) - static_cast<UT>(minEL) + 1;
+         i < Capacity(); ++i) {
+      if (Contains(static_cast<T>(static_cast<UT>(minEL) + i))) {
+        return static_cast<T>(static_cast<UT>(minEL) + i);
       }
     }
 
-    return T(uint8_t(maxEL) + 1);
+    return static_cast<T>(static_cast<UT>(maxEL) + 1);
   }
 
-  /**
-   * @brief This integer represents the set's data, with each bit corresponding
-   * to an element in the range [minEL, maxEL). The variable is initialized to
-   * zero, meaning no elements are initially present in the set.
-   */
-  uintptr_t data_ = 0;
+  std::bitset<
+      static_cast<std::size_t>(
+          static_cast<UT>(maxEL) - static_cast<UT>(minEL)
+      ) +
+      1>
+      data_;
 };
